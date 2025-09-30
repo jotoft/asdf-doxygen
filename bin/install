@@ -13,12 +13,38 @@ install_doxygen() {
     exit 1
   fi
 
+  # On macOS, prefer Homebrew's bison over the ancient system version
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    # Try Apple Silicon location first, then Intel location
+    if [ -d "/opt/homebrew/opt/bison/bin" ]; then
+      export PATH="/opt/homebrew/opt/bison/bin:$PATH"
+    elif [ -d "/usr/local/opt/bison/bin" ]; then
+      export PATH="/usr/local/opt/bison/bin:$PATH"
+    fi
+
+    # Also add flex if available (for consistency)
+    if [ -d "/opt/homebrew/opt/flex/bin" ]; then
+      export PATH="/opt/homebrew/opt/flex/bin:$PATH"
+    elif [ -d "/usr/local/opt/flex/bin" ]; then
+      export PATH="/usr/local/opt/flex/bin:$PATH"
+    fi
+  fi
+
+  # Determine number of parallel jobs (nproc is Linux-specific)
+  if command -v nproc &> /dev/null; then
+    JOBS="$(nproc)"
+  elif command -v sysctl &> /dev/null; then
+    JOBS="$(sysctl -n hw.ncpu)"
+  else
+    JOBS="2"
+  fi
+
   echo "Building doxygen ${version}..."
   cd "${download_path}"
   mkdir -p build
   cd build
   cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="${install_path}" ..
-  make -j"$(nproc)"
+  make -j"${JOBS}"
   make install
 
   echo "doxygen ${version} installed successfully!"

@@ -41,6 +41,8 @@ sudo apt-get install build-essential cmake flex bison
 brew install cmake flex bison
 ```
 
+> **Note:** macOS ships with an old version of bison (2.3) that doesn't meet doxygen's requirements (≥2.7). The plugin automatically detects and uses the Homebrew-installed versions of bison and flex if available.
+
 ## Install
 
 ### Using asdf
