@@ -44,16 +44,22 @@ jobs:
       - name: Get latest version
         if: matrix.version == 'latest'
         id: latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           LATEST=$(./bin/list-all | tr ' ' '\n' | tail -1)
           echo "version=${LATEST}" >> $GITHUB_OUTPUT
 
       - name: Test plugin with specific version
         if: matrix.version != 'latest'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           asdf plugin test doxygen . --asdf-plugin-gitref ${{ github.sha }} --asdf-tool-version ${{ matrix.version }} doxygen --version
 
       - name: Test plugin with latest version
         if: matrix.version == 'latest'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           asdf plugin test doxygen . --asdf-plugin-gitref ${{ github.sha }} --asdf-tool-version ${{ steps.latest.outputs.version }} doxygen --version
