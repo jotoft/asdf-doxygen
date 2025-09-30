@@ -47,7 +47,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          LATEST=$(./bin/list-all | tr ' ' '\n' | tail -1)
+          LATEST=$(./bin/list-all | tr ' ' '\n' | head -1)
           echo "version=${LATEST}" >> $GITHUB_OUTPUT
 
       - name: Test plugin with specific version

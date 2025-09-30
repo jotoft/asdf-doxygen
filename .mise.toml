@@ -19,7 +19,7 @@ run = '''
 set -euo pipefail
 
 # Get latest version
-LATEST=$(./bin/list-all | tr ' ' '\n' | tail -1)
+LATEST=$(./bin/list-all | tr ' ' '\n' | head -1)
 echo "Testing download of doxygen ${LATEST}..."
 
 # Create temp directory
@@ -50,7 +50,7 @@ run = '''
 set -euo pipefail
 
 # Get latest version
-LATEST=$(./bin/list-all | tr ' ' '\n' | tail -1)
+LATEST=$(./bin/list-all | tr ' ' '\n' | head -1)
 echo "Testing installation of doxygen ${LATEST}..."
 
 # Create temp directories
