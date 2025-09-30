@@ -55,13 +55,13 @@ asdf plugin add doxygen https://github.com/jotoft/asdf-doxygen.git
 asdf list-all doxygen
 
 # Install specific version
-asdf install doxygen 1.12.0
+asdf install doxygen 1.13.0
 
 # Set a version globally (in your ~/.tool-versions file)
-asdf global doxygen 1.12.0
+asdf global doxygen 1.13.0
 
 # Set a version locally (in your current directory's .tool-versions file)
-asdf local doxygen 1.12.0
+asdf local doxygen 1.13.0
 ```
 
 Check [asdf](https://github.com/asdf-vm/asdf) readme for more instructions on how to install & manage versions.
@@ -73,11 +73,11 @@ Check [asdf](https://github.com/asdf-vm/asdf) readme for more instructions on ho
 mise plugin add doxygen https://github.com/jotoft/asdf-doxygen.git
 
 # Install specific version
-mise use doxygen@1.12.0
+mise use doxygen@1.13.0
 
 # Or add to .mise.toml
 echo '[tools]
-doxygen = "1.12.0"' >> .mise.toml
+doxygen = "1.13.0"' >> .mise.toml
 ```
 
 Check [mise](https://mise.jdx.dev/) documentation for more information.
@@ -120,7 +120,7 @@ mise run test-download
 mise run test-install
 
 # Test installation of a specific version
-mise run test-specific 1.12.0
+mise run test-specific 1.13.0
 
 # Run all tests
 mise run test-all

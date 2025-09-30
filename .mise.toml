@@ -89,7 +89,7 @@ run = '''
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="${1:-1.12.0}"
+VERSION="${1:-1.13.0}"
 echo "Testing installation of doxygen ${VERSION}..."
 
 # Create temp directories
