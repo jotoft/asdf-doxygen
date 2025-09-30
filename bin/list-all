@@ -3,7 +3,23 @@
 set -euo pipefail
 
 # List all available doxygen versions from GitHub releases
-curl -s https://api.github.com/repos/doxygen/doxygen/releases | \
-  grep -oP '"tag_name": "Release_\K[^"]+' | \
-  tr '_' '.' | \
-  tr '\n' ' '
+# Set up authentication header if GITHUB_API_TOKEN is available
+if [ -n "${GITHUB_API_TOKEN:-}" ]; then
+  AUTH_HEADER="Authorization: token ${GITHUB_API_TOKEN}"
+elif [ -n "${GITHUB_TOKEN:-}" ]; then
+  AUTH_HEADER="Authorization: token ${GITHUB_TOKEN}"
+else
+  AUTH_HEADER=""
+fi
+
+if [ -n "$AUTH_HEADER" ]; then
+  curl -s -H "$AUTH_HEADER" https://api.github.com/repos/doxygen/doxygen/releases | \
+    grep -oP '"tag_name": "Release_\K[^"]+' | \
+    tr '_' '.' | \
+    tr '\n' ' '
+else
+  curl -s https://api.github.com/repos/doxygen/doxygen/releases | \
+    grep -oP '"tag_name": "Release_\K[^"]+' | \
+    tr '_' '.' | \
+    tr '\n' ' '
+fi
