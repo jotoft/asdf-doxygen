@@ -5,6 +5,7 @@ on:
     branches:
       - main
   pull_request:
+  workflow_dispatch:
 
 jobs:
   lint:
@@ -17,7 +18,8 @@ jobs:
         run: |
           shellcheck bin/*
 
-  test:
+  test-quick:
+    name: Test ${{ matrix.version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -63,3 +65,79 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           asdf plugin test doxygen . --asdf-plugin-gitref ${{ github.sha }} --asdf-tool-version ${{ steps.latest.outputs.version }} doxygen --version
+
+  test-all-versions:
+    name: Test all versions on ${{ matrix.os }}
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    needs: [lint, test-quick]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install asdf
+        uses: asdf-vm/actions/setup@v3
+
+      - name: Install dependencies (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake flex bison
+
+      - name: Install dependencies (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install cmake flex bison
+
+      - name: Get all versions
+        id: versions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSIONS=$(./bin/list-all)
+          echo "versions=${VERSIONS}" >> $GITHUB_OUTPUT
+          echo "Found versions: ${VERSIONS}"
+
+      - name: Test each version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSIONS="${{ steps.versions.outputs.versions }}"
+          FAILED_VERSIONS=""
+          SUCCESS_COUNT=0
+          FAIL_COUNT=0
+
+          echo "================================================"
+          echo "Testing all doxygen versions on ${{ matrix.os }}"
+          echo "================================================"
+
+          for VERSION in $VERSIONS; do
+            echo ""
+            echo "--- Testing doxygen ${VERSION} ---"
+
+            if asdf plugin test doxygen . --asdf-plugin-gitref ${{ github.sha }} --asdf-tool-version "${VERSION}" doxygen --version; then
+              echo "✓ ${VERSION} built successfully"
+              SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+            else
+              echo "✗ ${VERSION} failed to build"
+              FAILED_VERSIONS="${FAILED_VERSIONS} ${VERSION}"
+              FAIL_COUNT=$((FAIL_COUNT + 1))
+            fi
+          done
+
+          echo ""
+          echo "================================================"
+          echo "Summary for ${{ matrix.os }}:"
+          echo "  Successful: ${SUCCESS_COUNT}"
+          echo "  Failed: ${FAIL_COUNT}"
+          if [ -n "${FAILED_VERSIONS}" ]; then
+            echo "  Failed versions:${FAILED_VERSIONS}"
+          fi
+          echo "================================================"
+
+          # Don't fail the job, just report results
+          exit 0

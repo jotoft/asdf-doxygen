@@ -44,11 +44,19 @@ install_doxygen() {
   mkdir -p build
   cd build
 
-  # Add compiler flags to handle known issues with older versions
+  # Detect compiler and set appropriate flags
   # - Allows doxygen 1.12.0 to build on newer clang (17.0+) by downgrading template errors to warnings
+  CXX_COMPILER="${CXX:-c++}"
+  EXTRA_CXX_FLAGS=""
+
+  if $CXX_COMPILER --version 2>&1 | grep -qi "clang"; then
+    # Clang-specific flag for template issues in older doxygen versions
+    EXTRA_CXX_FLAGS="-Wno-error=missing-template-arg-list-after-template-kw"
+  fi
+
   cmake -G "Unix Makefiles" \
     -DCMAKE_INSTALL_PREFIX="${install_path}" \
-    -DCMAKE_CXX_FLAGS="-Wno-error=missing-template-arg-list-after-template-kw" \
+    -DCMAKE_CXX_FLAGS="${EXTRA_CXX_FLAGS}" \
     ..
 
   make -j"${JOBS}"
