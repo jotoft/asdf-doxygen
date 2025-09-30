@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+download_doxygen() {
+  local version=$1
+  local download_path=$2
+
+  # Convert version format (1.9.1 -> 1_9_1 for GitHub release tag)
+  local tag_version="${version//./_}"
+  local source_url="https://github.com/doxygen/doxygen/archive/refs/tags/Release_${tag_version}.tar.gz"
+
+  echo "Downloading doxygen ${version} source..."
+  curl -fsSL "$source_url" -o "${download_path}/doxygen-src.tar.gz"
+
+  echo "Extracting..."
+  tar -xzf "${download_path}/doxygen-src.tar.gz" -C "${download_path}" --strip-components=1
+  rm "${download_path}/doxygen-src.tar.gz"
+
+  echo "doxygen ${version} downloaded successfully!"
+}
+
+download_doxygen "$ASDF_INSTALL_VERSION" "$ASDF_DOWNLOAD_PATH"
