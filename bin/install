@@ -18,7 +18,7 @@ install_doxygen() {
   mkdir -p build
   cd build
   cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="${install_path}" ..
-  make -j$(nproc)
+  make -j"$(nproc)"
   make install
 
   echo "doxygen ${version} installed successfully!"
