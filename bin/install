@@ -43,7 +43,14 @@ install_doxygen() {
   cd "${download_path}"
   mkdir -p build
   cd build
-  cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="${install_path}" ..
+
+  # Add compiler flags to handle known issues with older versions
+  # - Allows doxygen 1.12.0 to build on newer clang (17.0+) by downgrading template errors to warnings
+  cmake -G "Unix Makefiles" \
+    -DCMAKE_INSTALL_PREFIX="${install_path}" \
+    -DCMAKE_CXX_FLAGS="-Wno-error=missing-template-arg-list-after-template-kw" \
+    ..
+
   make -j"${JOBS}"
   make install
 
