@@ -22,6 +22,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
+        version: ['1.12.0', 'latest']
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -40,6 +41,19 @@ jobs:
         run: |
           brew install cmake flex bison
 
-      - name: Test plugin
+      - name: Get latest version
+        if: matrix.version == 'latest'
+        id: latest
         run: |
-          asdf plugin test doxygen . --asdf-plugin-gitref ${{ github.sha }} --asdf-tool-version 1.12.0 doxygen --version
+          LATEST=$(./bin/list-all | tr ' ' '\n' | tail -1)
+          echo "version=${LATEST}" >> $GITHUB_OUTPUT
+
+      - name: Test plugin with specific version
+        if: matrix.version != 'latest'
+        run: |
+          asdf plugin test doxygen . --asdf-plugin-gitref ${{ github.sha }} --asdf-tool-version ${{ matrix.version }} doxygen --version
+
+      - name: Test plugin with latest version
+        if: matrix.version == 'latest'
+        run: |
+          asdf plugin test doxygen . --asdf-plugin-gitref ${{ github.sha }} --asdf-tool-version ${{ steps.latest.outputs.version }} doxygen --version

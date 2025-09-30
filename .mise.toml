@@ -1,0 +1,131 @@
+# mise configuration for asdf-doxygen plugin development and testing
+
+[tools]
+# Use the local plugin for testing
+doxygen = "1.14.0"
+
+[tasks.lint]
+description = "Run shellcheck on all scripts"
+run = "shellcheck bin/*"
+
+[tasks.test-list]
+description = "Test list-all script"
+run = "./bin/list-all"
+
+[tasks.test-download]
+description = "Test download script with latest version"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Get latest version
+LATEST=$(./bin/list-all | tr ' ' '\n' | tail -1)
+echo "Testing download of doxygen ${LATEST}..."
+
+# Create temp directory
+TEMP_DIR=$(mktemp -d)
+trap "rm -rf ${TEMP_DIR}" EXIT
+
+# Test download
+export ASDF_INSTALL_VERSION="${LATEST}"
+export ASDF_DOWNLOAD_PATH="${TEMP_DIR}/download"
+mkdir -p "${ASDF_DOWNLOAD_PATH}"
+
+./bin/download
+
+# Check if download succeeded
+if [ -f "${ASDF_DOWNLOAD_PATH}/CMakeLists.txt" ]; then
+  echo "✓ Download successful"
+  ls -lah "${ASDF_DOWNLOAD_PATH}" | head -10
+else
+  echo "✗ Download failed"
+  exit 1
+fi
+'''
+
+[tasks.test-install]
+description = "Test full installation of latest doxygen"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Get latest version
+LATEST=$(./bin/list-all | tr ' ' '\n' | tail -1)
+echo "Testing installation of doxygen ${LATEST}..."
+
+# Create temp directories
+TEMP_DIR=$(mktemp -d)
+trap "rm -rf ${TEMP_DIR}" EXIT
+
+export ASDF_INSTALL_TYPE="version"
+export ASDF_INSTALL_VERSION="${LATEST}"
+export ASDF_DOWNLOAD_PATH="${TEMP_DIR}/download"
+export ASDF_INSTALL_PATH="${TEMP_DIR}/install"
+
+mkdir -p "${ASDF_DOWNLOAD_PATH}"
+mkdir -p "${ASDF_INSTALL_PATH}"
+
+# Download
+echo "Downloading..."
+./bin/download
+
+# Install
+echo "Building and installing..."
+./bin/install
+
+# Verify installation
+if [ -x "${ASDF_INSTALL_PATH}/bin/doxygen" ]; then
+  echo "✓ Installation successful"
+  "${ASDF_INSTALL_PATH}/bin/doxygen" --version
+else
+  echo "✗ Installation failed"
+  exit 1
+fi
+'''
+
+[tasks.test-specific]
+description = "Test installation of a specific doxygen version"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+VERSION="${1:-1.12.0}"
+echo "Testing installation of doxygen ${VERSION}..."
+
+# Create temp directories
+TEMP_DIR=$(mktemp -d)
+trap "rm -rf ${TEMP_DIR}" EXIT
+
+export ASDF_INSTALL_TYPE="version"
+export ASDF_INSTALL_VERSION="${VERSION}"
+export ASDF_DOWNLOAD_PATH="${TEMP_DIR}/download"
+export ASDF_INSTALL_PATH="${TEMP_DIR}/install"
+
+mkdir -p "${ASDF_DOWNLOAD_PATH}"
+mkdir -p "${ASDF_INSTALL_PATH}"
+
+# Download
+echo "Downloading..."
+./bin/download
+
+# Install
+echo "Building and installing..."
+./bin/install
+
+# Verify installation
+if [ -x "${ASDF_INSTALL_PATH}/bin/doxygen" ]; then
+  echo "✓ Installation successful"
+  "${ASDF_INSTALL_PATH}/bin/doxygen" --version
+else
+  echo "✗ Installation failed"
+  exit 1
+fi
+'''
+
+[tasks.test-all]
+description = "Run all tests"
+depends = ["lint", "test-list", "test-download", "test-install"]
+
+[tasks.clean]
+description = "Clean up any temporary files"
+run = "git clean -fdx"

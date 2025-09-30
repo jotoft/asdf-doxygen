@@ -2,7 +2,7 @@
 
 [![Build](https://github.com/jotoft/asdf-doxygen/actions/workflows/build.yml/badge.svg)](https://github.com/jotoft/asdf-doxygen/actions/workflows/build.yml)
 
-[Doxygen](https://www.doxygen.nl/) plugin for the [asdf](https://asdf-vm.com/) version manager.
+[Doxygen](https://www.doxygen.nl/) plugin for the [asdf](https://asdf-vm.com/) version manager and [mise](https://mise.jdx.dev/).
 
 This plugin builds doxygen from source, allowing you to install any version available from the [official GitHub releases](https://github.com/doxygen/doxygen/releases).
 
@@ -11,6 +11,7 @@ This plugin builds doxygen from source, allowing you to install any version avai
 - [Dependencies](#dependencies)
 - [Install](#install)
 - [Usage](#usage)
+- [Development](#development)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -42,15 +43,12 @@ brew install cmake flex bison
 
 ## Install
 
-### Plugin
+### Using asdf
 
 ```bash
+# Add the plugin
 asdf plugin add doxygen https://github.com/jotoft/asdf-doxygen.git
-```
 
-### Doxygen
-
-```bash
 # Show all installable versions
 asdf list-all doxygen
 
@@ -65,6 +63,22 @@ asdf local doxygen 1.12.0
 ```
 
 Check [asdf](https://github.com/asdf-vm/asdf) readme for more instructions on how to install & manage versions.
+
+### Using mise
+
+```bash
+# Add the plugin
+mise plugin add doxygen https://github.com/jotoft/asdf-doxygen.git
+
+# Install specific version
+mise use doxygen@1.12.0
+
+# Or add to .mise.toml
+echo '[tools]
+doxygen = "1.12.0"' >> .mise.toml
+```
+
+Check [mise](https://mise.jdx.dev/) documentation for more information.
 
 ## Usage
 
@@ -82,6 +96,48 @@ doxygen -g
 
 # Run doxygen with the configuration
 doxygen Doxyfile
+```
+
+## Development
+
+This repository includes a `.mise.toml` file with tasks for plugin development and testing.
+
+### Available Tasks
+
+```bash
+# Run shellcheck on all scripts
+mise run lint
+
+# Test the list-all script
+mise run test-list
+
+# Test downloading the latest version
+mise run test-download
+
+# Test full installation of latest version
+mise run test-install
+
+# Test installation of a specific version
+mise run test-specific 1.12.0
+
+# Run all tests
+mise run test-all
+
+# Clean up temporary files
+mise run clean
+```
+
+### Testing Locally
+
+To test the plugin locally before pushing:
+
+```bash
+# Clone the repository
+git clone https://github.com/jotoft/asdf-doxygen.git
+cd asdf-doxygen
+
+# Run all tests
+mise run test-all
 ```
 
 ## Contributing
